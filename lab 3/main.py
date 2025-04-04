@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-from matplotlib.patches import Circle, Rectangle
 import math
 
 class GraphVisualizer:
@@ -37,33 +36,33 @@ class GraphVisualizer:
             vertices_bottom = math.ceil((outer_vertices - vertices_top - vertices_right) / 2)
             vertices_left = outer_vertices - vertices_top - vertices_right - vertices_bottom
             
-            current_vertex = 0
+            current_vertex = 1
             
             for i in range(vertices_top):
-                if current_vertex >= outer_vertices: break
+                if current_vertex > outer_vertices: break
                 x = -width/2 + i * (width/(vertices_top-1) if vertices_top > 1 else 0)
                 positions[current_vertex] = (x, height/2)
                 current_vertex += 1
             
             for i in range(vertices_right):
-                if current_vertex >= outer_vertices: break
+                if current_vertex > outer_vertices: break
                 y = height/2 - (i+1) * (height/(vertices_right+1))
                 positions[current_vertex] = (width/2, y)
                 current_vertex += 1
             
             for i in range(vertices_bottom):
-                if current_vertex >= outer_vertices: break
+                if current_vertex > outer_vertices: break
                 x = width/2 - i * (width/(vertices_bottom-1) if vertices_bottom > 1 else 0)
                 positions[current_vertex] = (x, -height/2)
                 current_vertex += 1
             
             for i in range(vertices_left):
-                if current_vertex >= outer_vertices: break
+                if current_vertex > outer_vertices: break
                 y = -height/2 + (i+1) * (height/(vertices_left+1))
                 positions[current_vertex] = (-width/2, y)
                 current_vertex += 1
             
-            positions[self.n - 1] = (0, 0)
+            positions[self.n] = (0, 0)
             
         return positions
 
@@ -71,13 +70,13 @@ class GraphVisualizer:
         plt.figure(figsize=(12, 8))
         G = nx.DiGraph() if directed else nx.Graph()
         
-        for i in range(self.n):
+        for i in range(1, self.n + 1):
             G.add_node(i)
         
         for i in range(self.n):
             for j in range(self.n):
                 if adj_matrix[i][j] == 1:
-                    G.add_edge(i, j)
+                    G.add_edge(i + 1, j + 1)
         
         pos = self.get_vertex_positions()
         
