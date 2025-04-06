@@ -2,23 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_STRING_LENGTH 26
+
 typedef struct Node {
-    char data[26];
+    char data[MAX_STRING_LENGTH];
     struct Node* next;
 } Node;
 
 Node* create_node(const char* str) {
     Node* new_node = (Node*)malloc(sizeof(Node));
-    if (new_node) {
-        strncpy(new_node->data, str, 25);
-        new_node->data[25] = '\0';
-        new_node->next = NULL;
+    if (new_node == NULL) {
+        fprintf(stderr, "Memory allocation failed!\n");
+        return NULL;
     }
+    strncpy(new_node->data, str, MAX_STRING_LENGTH - 1);
+    new_node->data[MAX_STRING_LENGTH - 1] = '\0';
+    new_node->next = NULL;
     return new_node;
 }
 
-void append(Node** head, const char* str) {
+int append(Node** head, const char* str) {
     Node* new_node = create_node(str);
+    if (new_node == NULL) {
+        return 0;
+    }
+    
     if (*head == NULL) {
         *head = new_node;
     } else {
@@ -28,6 +36,7 @@ void append(Node** head, const char* str) {
         }
         temp->next = new_node;
     }
+    return 1;
 }
 
 void print_list(Node* head) {
@@ -36,6 +45,7 @@ void print_list(Node* head) {
         printf("%s ", temp->data);
         temp = temp->next;
     }
+    printf("\n");
 }
 
 void free_list(Node* head) {
@@ -59,22 +69,17 @@ Node* rearrange(Node* head, int n) {
     for (int i = 0; i < n / 20; i++) {
         Node* block_heads[20] = {NULL};
 
-        for (int j = 0; j < 20; j++) {
-            if (current != NULL) {
-                Node* temp = current;
-                current = current->next;
-                temp->next = NULL;
-                block_heads[j] = temp;
-            } else {
-                break;
-            }
+        for (int j = 0; j < 20 && current != NULL; j++) {
+            Node* temp = current;
+            current = current->next;
+            temp->next = NULL;
+            block_heads[j] = temp;
         }
 
         for (int j = 0; j < 10; j++) {
             if (block_heads[j] != NULL) {
                 if (new_head == NULL) {
-                    new_head = block_heads[j];
-                    new_tail = block_heads[j];
+                    new_head = new_tail = block_heads[j];
                 } else {
                     new_tail->next = block_heads[j];
                     new_tail = block_heads[j];
@@ -83,8 +88,7 @@ Node* rearrange(Node* head, int n) {
 
             if (block_heads[j + 10] != NULL) {
                 if (new_head == NULL) {
-                    new_head = block_heads[j + 10];
-                    new_tail = block_heads[j + 10];
+                    new_head = new_tail = block_heads[j + 10];
                 } else {
                     new_tail->next = block_heads[j + 10];
                     new_tail = block_heads[j + 10];
@@ -99,20 +103,31 @@ Node* rearrange(Node* head, int n) {
 int main() {
     int n;
     printf("Enter the number of elements (multiple of 20): ");
-    scanf("%d", &n);
+    if (scanf("%d", &n) != 1) {
+        fprintf(stderr, "Failed to read input number\n");
+        return 1;
+    }
 
     if (n <= 0 || n % 20 != 0) {
-        printf("Invalid input. The number of elements should be a positive multiple of 20.\n");
+        fprintf(stderr, "Invalid input. The number of elements should be a positive multiple of 20.\n");
         return 1;
     }
 
     Node* list = NULL;
-    char str[26];
+    char str[MAX_STRING_LENGTH];
 
-    printf("Enter the elements (strings up to 25 characters each):\n");
+    printf("Enter the elements (strings up to %d characters each):\n", MAX_STRING_LENGTH - 1);
     for (int i = 0; i < n; i++) {
-        scanf("%s", str);
-        append(&list, str);
+        if (scanf("%s", str) != 1) {
+            fprintf(stderr, "Failed to read string input\n");
+            free_list(list);
+            return 1;
+        }
+        if (!append(&list, str)) {
+            fprintf(stderr, "Failed to append node\n");
+            free_list(list);
+            return 1;
+        }
     }
 
     printf("\nOriginal list:\n");
@@ -124,6 +139,5 @@ int main() {
     print_list(list);
 
     free_list(list);
-
     return 0;
 }
