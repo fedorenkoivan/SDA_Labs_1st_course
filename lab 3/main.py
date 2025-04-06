@@ -15,7 +15,7 @@ class GraphVisualizer:
         self.k = 1.0 - self.n3 * 0.02 - self.n4 * 0.005 - 0.25
 
     def generate_adjacency_matrix(self):
-        np.random.seed(self.n1 * 1000 + self.n2 * 100 + self.n3 * 10 + self.n4)
+        np.random.seed(4229)
         
         T = np.random.uniform(0, 2.0, size=(self.n, self.n))
         
@@ -64,6 +64,12 @@ class GraphVisualizer:
             
             positions[self.n] = (0, 0)
             
+        else:
+            angle_step = 2 * math.pi / self.n
+            for i in range(1, self.n + 1):
+                angle = i * angle_step
+                positions[i] = (math.cos(angle), math.sin(angle))
+        
         return positions
 
     def draw_graph(self, adj_matrix, directed=True):
