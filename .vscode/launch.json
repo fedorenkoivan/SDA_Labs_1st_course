@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "d:/Documents/IVAN/Іван docs/КПІ/перший курс/другий семестр/SDA 2 cem/lab 2",
-      "program": "d:/Documents/IVAN/Іван docs/КПІ/перший курс/другий семестр/SDA 2 cem/lab 2/build/Debug/outDebug",
+      "cwd": ".",
+      "program": "build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
