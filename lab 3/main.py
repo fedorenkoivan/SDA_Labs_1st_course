@@ -150,15 +150,7 @@ def draw_graph(directed_matrix, positions, is_directed=True):
     graph_type = "Directed" if is_directed else "Undirected"
     plt.title(f"{graph_type} Graph - {n} vertices")
     
-    if is_directed:
-        arrow_legend = patches.FancyArrowPatch((0, 0), (1, 0), 
-                                             arrowstyle='->', color='blue',
-                                             linewidth=1.5, 
-                                             connectionstyle='arc3,rad=0')
-        ax.legend([arrow_legend], ['Direction of edge'], loc='upper right')
-    
     plt.axis('off')
-    return fig, ax
 
 def print_matrix(matrix, title):
     """Print the adjacency matrix in a readable format"""
@@ -184,10 +176,10 @@ def main():
     
     positions = get_vertex_positions(n, n4)
     
-    fig_dir, ax_dir = draw_graph(directed_matrix, positions, is_directed=True)
+    draw_graph(directed_matrix, positions, is_directed=True)
     plt.savefig('directed_graph.png')
 
-    fig_undir, ax_undir = draw_graph(directed_matrix, positions, is_directed=False)
+    draw_graph(directed_matrix, positions, is_directed=False)
     plt.savefig('undirected_graph.png')
     
     plt.show()
