@@ -1,3 +1,4 @@
+import shutil
 import matplotlib.pyplot as plt
 from matrix_methods import (
     generate_adjacency_matrix, get_undirected_matrix,
@@ -84,15 +85,34 @@ def main():
     for i in range(n):
         print(f"{i+1:6d} | {new_in_degrees[i]:9d} | {new_out_degrees[i]:10d}")
     
+    def print_paths_optimized(paths, paths_length_title):
+        print(f"\n{paths_length_title} (count: {len(paths)}):")
+        
+        if not paths:
+            print("Немає шляхів для відображення")
+            return
+        
+        formatted_paths = [format_path(path) for path in paths]
+        max_path_length = max(len(path) for path in formatted_paths) + 2  # +2 для відступу
+        
+        terminal_width = shutil.get_terminal_size().columns
+        
+        max_columns = max(1, terminal_width // (max_path_length + 1))
+        
+        for i in range(0, len(paths), max_columns):
+            row_paths = formatted_paths[i:i+max_columns]
+            row_str = ""
+            for j, path in enumerate(row_paths):
+                if j > 0:  # роздільник перед всіма стовпцями, крім першого
+                    row_str += "| "
+                row_str += f"{path:<{max_path_length-2}}"
+            print(row_str)
+
     paths_length_2 = find_paths_of_length(new_directed_matrix, 2)
-    print(f"\nPaths of length 2 (count: {len(paths_length_2)}):")
-    for path in paths_length_2:
-        print(format_path(path))
-    
+    print_paths_optimized(paths_length_2, "Paths of length 2")
+
     paths_length_3 = find_paths_of_length(new_directed_matrix, 3)
-    print(f"\nPaths of length 3 (count: {len(paths_length_3)}):")
-    for path in paths_length_3:
-        print(format_path(path))
+    print_paths_optimized(paths_length_3, "Paths of length 3")
     
     reachability_matrix = calculate_reachability_matrix(new_directed_matrix)
     print_matrix(reachability_matrix, "Reachability Matrix")
