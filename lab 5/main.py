@@ -2,18 +2,11 @@ import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 from matrix_methods import (
-    generate_adjacency_matrix, get_undirected_matrix,
-    calculate_reachability_matrix, calculate_strong_connectivity_matrix,
-    print_matrix, calculate_degrees
+    print_matrix
 )
 from drawing_methods import (
-    draw_graph, draw_condensation_graph,
+    draw_graph,
     get_vertex_positions
-)
-from graph_analysis import (
-    is_regular_graph, find_special_vertices,
-    find_paths_of_length, find_strongly_connected_components,
-    create_condensation_graph, format_path
 )
 from traversal_methods import (
     draw_traversal_graph
