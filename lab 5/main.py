@@ -1,16 +1,11 @@
-import shutil
 import matplotlib.pyplot as plt
 import numpy as np
-from matrix_methods import (
-    print_matrix
-)
+from matrix_methods import print_matrix
 from drawing_methods import (
     draw_graph,
     get_vertex_positions
 )
-from traversal_methods import (
-    draw_traversal_graph
-)
+from traversal_methods import draw_traversal_graph
 
 def main():
     variant_number = 4229
