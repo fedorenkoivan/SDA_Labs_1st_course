@@ -54,7 +54,6 @@ def main():
     else:
         print("Directed graph is not regular")
     
-    # Find hanging and isolated vertices
     dir_hanging, dir_isolated = find_special_vertices(directed_matrix, is_directed=True)
     undir_hanging, undir_isolated = find_special_vertices(undirected_matrix, is_directed=False)
     
@@ -93,7 +92,7 @@ def main():
             return
         
         formatted_paths = [format_path(path) for path in paths]
-        max_path_length = max(len(path) for path in formatted_paths) + 2  # +2 для відступу
+        max_path_length = max(len(path) for path in formatted_paths) + 2
         
         terminal_width = shutil.get_terminal_size().columns
         
@@ -103,7 +102,7 @@ def main():
             row_paths = formatted_paths[i:i+max_columns]
             row_str = ""
             for j, path in enumerate(row_paths):
-                if j > 0:  # роздільник перед всіма стовпцями, крім першого
+                if j > 0:
                     row_str += "| "
                 row_str += f"{path:<{max_path_length-2}}"
             print(row_str)

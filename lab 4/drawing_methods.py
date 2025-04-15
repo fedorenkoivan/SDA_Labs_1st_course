@@ -1,6 +1,53 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import math
+
+def rotate_around_center(x, y, cx, cy, angle):
+    """Обертання точки (x, y) навколо центру (cx, cy) на кут angle (в радіанах)"""
+    dx = x - cx
+    dy = y - cy
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+    x_new = cx + dx * cos_a - dy * sin_a
+    y_new = cy + dx * sin_a + dy * cos_a
+    return (x_new, y_new)
+
+def draw_self_loop(ax, pos, color='blue', linewidth=1.5, is_directed=True):
+    """Draw a self-loop using polygonal lines under the vertex (with rotation)"""
+    cx, cy = pos
+    R = 0.5
+    index_angle = 0
+    theta = index_angle
+
+    cx += R * math.sin(theta)
+    cy -= R * math.cos(theta)
+
+    dx = 3 * R / 4
+    dy = R * (1 - math.sqrt(7)) / 4
+
+    p1 = (cx - dx, cy - dy)
+    p2 = (cx - 3 * dx / 2, cy - R / 2)
+    p3 = (cx + 3 * dx / 2, cy - R / 2)
+    p4 = (cx + dx, cy - dy)
+
+    p1 = rotate_around_center(p1[0], p1[1], cx, cy, theta)
+    p2 = rotate_around_center(p2[0], p2[1], cx, cy, theta)
+    p3 = rotate_around_center(p3[0], p3[1], cx, cy, theta)
+    p4 = rotate_around_center(p4[0], p4[1], cx, cy, theta)
+
+    ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color=color, linewidth=linewidth)
+    ax.plot([p2[0], p3[0]], [p2[1], p3[1]], color=color, linewidth=linewidth)
+
+    if is_directed:
+        dx_arrow = p4[0] - p3[0]
+        dy_arrow = p4[1] - p3[1]
+        ax.arrow(p3[0], p3[1], dx_arrow, dy_arrow,
+                 head_width=0.15, head_length=0.15,
+                 fc=color, ec=color, linewidth=linewidth,
+                 length_includes_head=True)
+    else:
+        ax.plot([p3[0], p4[0]], [p3[1], p4[1]], color=color, linewidth=linewidth)
 
 def draw_edge(ax, start, end, is_directed=True, color='blue', linewidth=1.5):
     """Draw an edge between two vertices"""
@@ -53,7 +100,10 @@ def draw_graph(adjacency_matrix, positions, is_directed=True, title="Graph"):
     for i in range(n):
         for j in range(n):
             if adjacency_matrix[i, j] == 1:
-                draw_edge(ax, positions[i], positions[j], is_directed, color='blue')
+                if i == j:
+                    draw_self_loop(ax, positions[i], color='blue', linewidth=1.5, is_directed=is_directed)
+                else:
+                    draw_edge(ax, positions[i], positions[j], is_directed, color='blue')
     
     for i, pos in enumerate(positions):
         circle = plt.Circle(pos, 0.5, fill=True, color='lightblue', edgecolor='blue')
@@ -102,11 +152,10 @@ def draw_condensation_graph(condensation_matrix, components, positions=None):
                 draw_edge(ax, positions[i], positions[j], is_directed=True, color='red')
     
     for i, pos in enumerate(positions):
-        radius = 0.8  # Larger radius for component nodes
+        radius = 0.8
         circle = plt.Circle(pos, radius, fill=True, color='lightgreen', edgecolor='green')
         ax.add_patch(circle)
         
-        # Label with component number and list of vertices
         component_label = f"C{i+1}: {components[i]}"
         ax.text(pos[0], pos[1], component_label, horizontalalignment='center', 
                 verticalalignment='center', fontsize=9, color='black')
@@ -126,7 +175,7 @@ def get_vertex_positions(n, n4):
     
     if n4 in [8, 9]:
         width, height = 12, 8
-        positions[n-1] = [0, 0]  # Center vertex
+        positions[n-1] = [0, 0]
         
         perimeter_vertices = n - 1
         sides = [0, 0, 0, 0]

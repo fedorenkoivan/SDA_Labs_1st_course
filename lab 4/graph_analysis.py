@@ -27,15 +27,12 @@ def find_paths_of_length(matrix, length):
     """Find all paths of specific length using matrix powers"""
     n = matrix.shape[0]
     
-    # Calculate matrix power
     power_matrix = np.linalg.matrix_power(matrix, length)
     
-    # Find all paths by looking at the power matrix entries
     paths = []
     for i in range(n):
         for j in range(n):
             if power_matrix[i, j] > 0:
-                # We need to find all the actual paths from i to j
                 intermediate_paths = find_all_paths(matrix, i, j, length)
                 paths.extend(intermediate_paths)
     
