@@ -62,8 +62,6 @@ def get_vertex_positions(n, n4):
             vertex_index += 1
     return positions
 
-import math
-
 def rotate_around_center(x, y, cx, cy, angle):
     """Обертання точки (x, y) навколо центру (cx, cy) на кут angle (в радіанах)"""
     dx = x - cx
@@ -77,34 +75,29 @@ def rotate_around_center(x, y, cx, cy, angle):
 def draw_self_loop(ax, pos, color='blue', linewidth=1.5, is_directed=True):
     """Draw a self-loop using polygonal lines under the vertex (with rotation)"""
     cx, cy = pos
-    R = 0.5  # приблизний радіус вершини
-    index_angle = 0  # опціонально — можна обчислити кут, якщо вершини на колі
-    theta = index_angle  # обертання (можна залишити 0 для простоти)
+    R = 0.5
+    index_angle = 0
+    theta = index_angle
 
-    # Зсув центру петлі нижче вершини
     cx += R * math.sin(theta)
     cy -= R * math.cos(theta)
 
     dx = 3 * R / 4
     dy = R * (1 - math.sqrt(7)) / 4
 
-    # Чотири контрольні точки ламаної
     p1 = (cx - dx, cy - dy)
     p2 = (cx - 3 * dx / 2, cy - R / 2)
     p3 = (cx + 3 * dx / 2, cy - R / 2)
     p4 = (cx + dx, cy - dy)
 
-    # Обертаємо точки навколо центру петлі
     p1 = rotate_around_center(p1[0], p1[1], cx, cy, theta)
     p2 = rotate_around_center(p2[0], p2[1], cx, cy, theta)
     p3 = rotate_around_center(p3[0], p3[1], cx, cy, theta)
     p4 = rotate_around_center(p4[0], p4[1], cx, cy, theta)
 
-    # Малюємо лінії
     ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color=color, linewidth=linewidth)
     ax.plot([p2[0], p3[0]], [p2[1], p3[1]], color=color, linewidth=linewidth)
 
-    # Третій відрізок — зі стрілкою або без
     if is_directed:
         dx_arrow = p4[0] - p3[0]
         dy_arrow = p4[1] - p3[1]
@@ -180,8 +173,7 @@ def main():
     print(f"Vertex placement: Rectangular with vertex in center (n4 = {n4})")
     directed_matrix = generate_adjacency_matrix(n, variant_number)
     undirected_matrix = get_undirected_matrix(directed_matrix)
-    loop_vertices = [i+1 for i in range(n) if directed_matrix[i, i] == 1]
-    print(f"Вершини з петлями: {loop_vertices}")
+
     print_matrix(directed_matrix, f"Directed Graph Adjacency Matrix ({n}x{n})")
     print_matrix(undirected_matrix, f"Undirected Graph Adjacency Matrix ({n}x{n})")
     positions = get_vertex_positions(n, n4)
