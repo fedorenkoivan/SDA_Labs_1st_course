@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import time
-import matplotlib.animation as animation
 from collections import deque
+from matplotlib.patches import Patch
+from drawing_methods import draw_edge, draw_self_loop
 
 def find_start_vertex(adjacency_matrix):
     """Find the vertex with smallest index that has at least one outgoing edge"""
@@ -15,29 +14,12 @@ def find_start_vertex(adjacency_matrix):
 
 def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
         vertex_circles=None, edge_arrows=None, pause_time=1.0):
-    """
-    Performs a breadth-first search traversal of the graph.
-    
-    Parameters:
-    - adjacency_matrix: The adjacency matrix of the graph
-    - start_vertex: The vertex to start from (0-indexed). If None, finds the lowest-indexed vertex with outgoing edges.
-    - ax: The matplotlib axis to draw on
-    - positions: Vertex positions for visualization
-    - vertex_circles: Dictionary of vertex circles for visualization
-    - edge_arrows: Dictionary of edge arrows for visualization
-    - pause_time: Time to pause between steps for visualization
-    
-    Returns:
-    - visited: List of visited vertices
-    - parent: Dictionary of parent vertices (for constructing the traversal tree)
-    - traversal_edges: List of edges in the traversal tree
-    """
+    """Performs a breadth-first search traversal of the graph."""
     n = adjacency_matrix.shape[0]
     
     if start_vertex is None:
         start_vertex = find_start_vertex(adjacency_matrix)
     
-    # Initialize data structures
     visited = [False] * n
     queue = deque([start_vertex])
     visited[start_vertex] = True
@@ -45,19 +27,16 @@ def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
     traversal_edges = []
     traversal_order = []
     
-    # Update visualization for start vertex
     if ax is not None and positions is not None and vertex_circles is not None:
         vertex_circles[start_vertex].set_facecolor('yellow')
         ax.text(positions[start_vertex][0], positions[start_vertex][1] - 0.8, f"Start", 
                 horizontalalignment='center', verticalalignment='center', fontsize=8)
         plt.pause(pause_time)
     
-    # BFS algorithm
     while queue:
         current = queue.popleft()
         traversal_order.append(current)
         
-        # Update visualization for current vertex (being processed)
         if ax is not None and positions is not None and vertex_circles is not None:
             vertex_circles[current].set_facecolor('red')
             plt.pause(pause_time)
@@ -69,7 +48,6 @@ def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
                 parent[neighbor] = current
                 traversal_edges.append((current, neighbor))
                 
-                # Update visualization for neighbor and edge
                 if ax is not None and positions is not None and vertex_circles is not None and edge_arrows is not None:
                     vertex_circles[neighbor].set_facecolor('yellow')
                     edge_key = (current, neighbor)
@@ -78,7 +56,6 @@ def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
                         edge_arrows[edge_key].set_linewidth(2.5)
                     plt.pause(pause_time)
         
-        # Update visualization for visited vertex (processed)
         if ax is not None and positions is not None and vertex_circles is not None:
             vertex_circles[current].set_facecolor('lightgreen')
             plt.pause(pause_time)
@@ -87,47 +64,27 @@ def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
 
 def dfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
         vertex_circles=None, edge_arrows=None, pause_time=1.0):
-    """
-    Performs a depth-first search traversal of the graph.
-    
-    Parameters:
-    - adjacency_matrix: The adjacency matrix of the graph
-    - start_vertex: The vertex to start from (0-indexed). If None, finds the lowest-indexed vertex with outgoing edges.
-    - ax: The matplotlib axis to draw on
-    - positions: Vertex positions for visualization
-    - vertex_circles: Dictionary of vertex circles for visualization
-    - edge_arrows: Dictionary of edge arrows for visualization
-    - pause_time: Time to pause between steps for visualization
-    
-    Returns:
-    - visited: List of visited vertices
-    - parent: Dictionary of parent vertices (for constructing the traversal tree)
-    - traversal_edges: List of edges in the traversal tree
-    """
+    """Performs a depth-first search traversal of the graph."""
     n = adjacency_matrix.shape[0]
     
     if start_vertex is None:
         start_vertex = find_start_vertex(adjacency_matrix)
     
-    # Initialize data structures
     visited = [False] * n
     parent = {start_vertex: None}
     traversal_edges = []
     traversal_order = []
     
-    # Update visualization for start vertex
     if ax is not None and positions is not None and vertex_circles is not None:
         vertex_circles[start_vertex].set_facecolor('yellow')
         ax.text(positions[start_vertex][0], positions[start_vertex][1] - 0.8, f"Start", 
                 horizontalalignment='center', verticalalignment='center', fontsize=8)
         plt.pause(pause_time)
     
-    # DFS recursive helper function
     def dfs_recursive(current):
         traversal_order.append(current)
         visited[current] = True
         
-        # Update visualization for current vertex (being processed)
         if ax is not None and positions is not None and vertex_circles is not None:
             vertex_circles[current].set_facecolor('red')
             plt.pause(pause_time)
@@ -160,25 +117,10 @@ def dfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
 
 def complete_graph_traversal(adjacency_matrix, traversal_func, ax=None, positions=None,
                             vertex_circles=None, edge_arrows=None, pause_time=1.0):
-    """
-    Completes a full traversal of the graph, handling disconnected components.
-    
-    Parameters:
-    - adjacency_matrix: The adjacency matrix of the graph
-    - traversal_func: The traversal function to use (bfs or dfs)
-    - ax: The matplotlib axis to draw on
-    - positions: Vertex positions for visualization
-    - vertex_circles: Dictionary of vertex circles for visualization
-    - edge_arrows: Dictionary of edge arrows for visualization
-    - pause_time: Time to pause between steps for visualization
-    
-    Returns:
-    - forest: List of traversal trees (as lists of edges)
-    - all_traversal_order: List of vertices in traversal order
-    """
+    """Completes a full traversal of the graph, handling disconnected components."""
     n = adjacency_matrix.shape[0]
     all_visited = [False] * n
-    forest = []  # List of trees (each tree is a list of edges)
+    forest = []
     all_traversal_order = []
     
     while False in all_visited:
@@ -219,43 +161,18 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
     
     fig, ax = plt.subplots(figsize=(12, 10))
     
-    # Draw vertices and edges
     vertex_circles = {}
     edge_arrows = {}
     
-    # Draw edges
     for i in range(n):
         for j in range(n):
             if adjacency_matrix[i, j] == 1:
-                # Draw edge i->j
-                dx = positions[j][0] - positions[i][0]
-                dy = positions[j][1] - positions[i][1]
-                dist = np.sqrt(dx**2 + dy**2)
-                if dist < 0.001:
-                    continue
-                
-                vertex_radius = 0.5
-                ratio = vertex_radius / dist
-                start_x = positions[i][0] + dx * ratio
-                start_y = positions[i][1] + dy * ratio
-                end_x = positions[j][0] - dx * ratio
-                end_y = positions[j][1] - dy * ratio
-                
-                rad = 0.2
-                # Виправлений імпорт для FancyArrowPatch
-                arrow = ax.add_patch(patches.FancyArrowPatch(
-                    (start_x, start_y), (end_x, end_y),
-                    arrowstyle='->',
-                    color='blue',
-                    linewidth=1.5,
-                    connectionstyle=f'arc3,rad={rad}',
-                    mutation_scale=15
-                ))
-                edge_arrows[(i, j)] = arrow
+                if i == j:
+                    draw_self_loop(ax, positions[i], color='blue', linewidth=1.5, is_directed=True)
+                else:
+                    draw_edge(ax, positions[i], positions[j], is_directed=True, color='blue')
     
-    # Draw vertices
     for i in range(n):
-        # Виправлення попередження: встановлюємо facecolor і edgecolor окремо замість color
         circle = plt.Circle(positions[i], 0.5, fill=True, facecolor='lightblue', edgecolor='blue')
         ax.add_patch(circle)
         vertex_circles[i] = circle
@@ -271,8 +188,6 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
     plt.title(f"Graph Traversal - {traversal_func_name}")
     plt.axis('off')
     
-    # Create legend for vertex colors
-    from matplotlib.patches import Patch
     legend_elements = [
         Patch(facecolor='lightblue', edgecolor='blue', label='Unvisited'),
         Patch(facecolor='yellow', edgecolor='blue', label='Discovered'),
@@ -281,21 +196,17 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
     ]
     ax.legend(handles=legend_elements, loc='upper right')
     
-    # Display initial state
     plt.pause(1.0)
     
-    # Determine which traversal function to use
     if traversal_func_name == "BFS":
         traversal_func = bfs
     else:  # "DFS"
         traversal_func = dfs
     
-    # Perform traversal
     forest, traversal_order = complete_graph_traversal(
         adjacency_matrix, traversal_func, ax, positions, vertex_circles, edge_arrows, pause_time
     )
     
-    # Print traversal information
     print(f"\n{traversal_func_name} Traversal Order:", " -> ".join(str(v+1) for v in traversal_order))
     
     print("\nTraversal Tree Edges:")
@@ -304,7 +215,6 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
         for edge in tree:
             print(f"  {edge[0]+1} -> {edge[1]+1}")
     
-    # Wait for user to press key to continue
     plt.title(f"Graph Traversal - {traversal_func_name} (Completed)")
     
     return fig, forest, traversal_order
