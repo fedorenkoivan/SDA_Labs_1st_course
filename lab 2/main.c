@@ -3,6 +3,8 @@
 #include <string.h>
 
 #define MAX_STRING_LENGTH 26
+#define BLOCK 20
+#define HALF  (BLOCK/2)
 
 typedef struct Node {
     char data[MAX_STRING_LENGTH];
@@ -10,10 +12,10 @@ typedef struct Node {
 } Node;
 
 Node* create_node(const char* str) {
-    Node* new_node = (Node*)malloc(sizeof(Node));
-    if (new_node == NULL) {
-        fprintf(stderr, "Memory allocation failed!\n");
-        return NULL;
+    Node* new_node = malloc(sizeof(Node));
+    if (!new_node) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
     }
     strncpy(new_node->data, str, MAX_STRING_LENGTH - 1);
     new_node->data[MAX_STRING_LENGTH - 1] = '\0';
@@ -21,123 +23,105 @@ Node* create_node(const char* str) {
     return new_node;
 }
 
-int append(Node** head, const char* str) {
-    Node* new_node = create_node(str);
-    if (new_node == NULL) {
-        return 0;
-    }
-    
+void append(Node** head, const char* str) {
+    Node* nd = create_node(str);
     if (*head == NULL) {
-        *head = new_node;
+        *head = nd;
     } else {
-        Node* temp = *head;
-        while (temp->next) {
-            temp = temp->next;
-        }
-        temp->next = new_node;
+        Node* t = *head;
+        while (t->next) t = t->next;
+        t->next = nd;
     }
-    return 1;
 }
 
 void print_list(Node* head) {
-    Node* temp = head;
-    while (temp != NULL) {
-        printf("%s ", temp->data);
-        temp = temp->next;
+    for (; head; head = head->next) {
+        printf("%s ", head->data);
     }
     printf("\n");
 }
 
 void free_list(Node* head) {
-    Node* temp;
-    while (head != NULL) {
-        temp = head;
+    while (head) {
+        Node* t = head;
         head = head->next;
-        free(temp);
+        free(t);
     }
 }
 
-Node* rearrange(Node* head, int n) {
-    if (head == NULL || n <= 0 || n % 20 != 0) {
-        return head;
+Node* rearrange(Node* head) {
+    Node dummy;
+    Node* tail = &dummy;
+    dummy.next = NULL;
+
+    Node* rest = head;
+
+    while (rest) {
+        Node* first_half = rest;
+        Node* mid = rest;
+        
+        for (int i = 0; i < HALF; i++) {
+            if (!mid) return dummy.next;
+            mid = mid->next;
+        }
+        
+        Node* block_tail = mid;
+        for (int i = 0; i < HALF - 1; i++) {
+            if (!block_tail) return dummy.next;
+            block_tail = block_tail->next;
+        }
+        Node* next_block = block_tail ? block_tail->next : NULL;
+        if (block_tail) block_tail->next = NULL;
+        
+        while (first_half && mid) {
+            Node* first = first_half;
+            first_half = first_half->next;
+            first->next = NULL;
+            tail->next = first;
+            tail = first;
+            
+            Node* second = mid;
+            mid = mid->next;
+            second->next = NULL;
+            tail->next = second;
+            tail = second;
+        }
+        
+        rest = next_block;
     }
 
-    Node* new_head = NULL;
-    Node* new_tail = NULL;
-    Node* current = head;
-
-    for (int i = 0; i < n / 20; i++) {
-        Node* block_heads[20] = {NULL};
-
-        for (int j = 0; j < 20 && current != NULL; j++) {
-            Node* temp = current;
-            current = current->next;
-            temp->next = NULL;
-            block_heads[j] = temp;
-        }
-
-        for (int j = 0; j < 10; j++) {
-            if (block_heads[j] != NULL) {
-                if (new_head == NULL) {
-                    new_head = new_tail = block_heads[j];
-                } else {
-                    new_tail->next = block_heads[j];
-                    new_tail = block_heads[j];
-                }
-            }
-
-            if (block_heads[j + 10] != NULL) {
-                if (new_head == NULL) {
-                    new_head = new_tail = block_heads[j + 10];
-                } else {
-                    new_tail->next = block_heads[j + 10];
-                    new_tail = block_heads[j + 10];
-                }
-            }
-        }
-    }
-
-    return new_head;
+    return dummy.next;
 }
 
-int main() {
+int main(void) {
     int n;
-    printf("Enter the number of elements (multiple of 20): ");
-    if (scanf("%d", &n) != 1) {
-        fprintf(stderr, "Failed to read input number\n");
-        return 1;
-    }
-
-    if (n <= 0 || n % 20 != 0) {
-        fprintf(stderr, "Invalid input. The number of elements should be a positive multiple of 20.\n");
-        return 1;
+    printf("Enter number of elements (positive multiple of %d): ", BLOCK);
+    if (scanf("%d", &n) != 1 || n <= 0 || n % BLOCK != 0) {
+        fprintf(stderr, "Bad input: n must be positive multiple of %d\n", BLOCK);
+        return EXIT_FAILURE;
     }
 
     Node* list = NULL;
-    char str[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH];
 
-    printf("Enter the elements (strings up to %d characters each):\n", MAX_STRING_LENGTH - 1);
+    printf("Enter %d strings (up to %d chars each):\n", n, MAX_STRING_LENGTH - 1);
     for (int i = 0; i < n; i++) {
-        if (scanf("%s", str) != 1) {
-            fprintf(stderr, "Failed to read string input\n");
+        if (scanf("%25s", buf) != 1) {
+            fprintf(stderr, "Failed to read string\n");
             free_list(list);
-            return 1;
+            return EXIT_FAILURE;
         }
-        if (!append(&list, str)) {
-            fprintf(stderr, "Failed to append node\n");
-            free_list(list);
-            return 1;
-        }
+        append(&list, buf);
     }
 
     printf("\nOriginal list:\n");
     print_list(list);
 
-    list = rearrange(list, n);
+    Node* new_list = rearrange(list);
 
     printf("\nRearranged list:\n");
-    print_list(list);
+    print_list(new_list);
 
-    free_list(list);
-    return 0;
+    free_list(new_list);
+    return EXIT_SUCCESS;
 }
