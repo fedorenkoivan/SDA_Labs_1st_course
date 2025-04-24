@@ -101,7 +101,7 @@ def draw_graph(adjacency_matrix, positions, is_directed=True, title="Graph"):
         for j in range(n):
             if adjacency_matrix[i, j] == 1:
                 if i == j:
-                    draw_self_loop(ax, positions[i], color='blue', linewidth=1.5, is_directed=is_directed)
+                    draw_self_loop(ax, positions[i], color='black', linewidth=1.5, is_directed=is_directed)
                 else:
                     draw_edge(ax, positions[i], positions[j], is_directed, color='blue')
     

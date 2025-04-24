@@ -168,7 +168,7 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
         for j in range(n):
             if adjacency_matrix[i, j] == 1:
                 if i == j:
-                    draw_self_loop(ax, positions[i], color='blue', linewidth=1.5, is_directed=True)
+                    draw_self_loop(ax, positions[i], color='black', linewidth=1.5, is_directed=True)
                 else:
                     draw_edge(ax, positions[i], positions[j], is_directed=True, color='blue')
     
