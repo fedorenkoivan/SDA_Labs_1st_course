@@ -15,18 +15,10 @@ def calculate_degrees(matrix, is_directed=True):
         degrees = np.sum(matrix, axis=1)
         return degrees
 
-def generate_adjacency_matrix(n, variant_number, k=None):
-    """Generate directed adjacency matrix based on variant number and coefficient k
-    If k is None, it will be calculated as k = 1.0 - n3 * 0.01 - n4 * 0.005 - 0.15
-    """
+def generate_adjacency_matrix(n, variant_number, k):
+    """Generate directed adjacency matrix based on variant number and k"""
     np.random.seed(variant_number)
     T = np.random.random((n, n)) * 2.0
-    
-    # Calculate coefficient k if not provided
-    if k is None:
-        n3 = 2  # From variant
-        n4 = 9  # From variant
-        k = 1.0 - n3 * 0.01 - n4 * 0.005 - 0.15
     
     print(f"Using k coefficient: {k}")
     

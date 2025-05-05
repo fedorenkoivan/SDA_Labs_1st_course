@@ -12,8 +12,17 @@ def find_start_vertex(adjacency_matrix):
             return i
     return 0  # Default to vertex 0 if no vertices have outgoing edges
 
+def wait_for_key(fig):
+    """Wait for a key press event"""
+    def on_key(event):
+        if event.key:
+            fig.canvas.stop_event_loop()
+    
+    fig.canvas.mpl_connect('key_press_event', on_key)
+    fig.canvas.start_event_loop()
+
 def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
-        vertex_circles=None, edge_arrows=None, pause_time=1.0):
+        vertex_circles=None, edge_arrows=None, step_by_step=False):
     """Performs a breadth-first search traversal of the graph."""
     n = adjacency_matrix.shape[0]
     
@@ -31,7 +40,9 @@ def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
         vertex_circles[start_vertex].set_facecolor('yellow')
         ax.text(positions[start_vertex][0], positions[start_vertex][1] - 0.8, f"Start", 
                 horizontalalignment='center', verticalalignment='center', fontsize=8)
-        plt.pause(pause_time)
+        if step_by_step:
+            plt.title("BFS: Initial vertex selected (press any key to continue)")
+            wait_for_key(plt.gcf())
     
     while queue:
         current = queue.popleft()
@@ -39,7 +50,9 @@ def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
         
         if ax is not None and positions is not None and vertex_circles is not None:
             vertex_circles[current].set_facecolor('red')
-            plt.pause(pause_time)
+            if step_by_step:
+                plt.title(f"BFS: Processing vertex {current+1} (press any key to continue)")
+                wait_for_key(plt.gcf())
         
         for neighbor in range(n):
             if adjacency_matrix[current, neighbor] == 1 and not visited[neighbor]:
@@ -54,16 +67,20 @@ def bfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
                     if edge_key in edge_arrows:
                         edge_arrows[edge_key].set_color('green')
                         edge_arrows[edge_key].set_linewidth(2.5)
-                    plt.pause(pause_time)
+                    if step_by_step:
+                        plt.title(f"BFS: Discovered vertex {neighbor+1} (press any key to continue)")
+                        wait_for_key(plt.gcf())
         
         if ax is not None and positions is not None and vertex_circles is not None:
             vertex_circles[current].set_facecolor('lightgreen')
-            plt.pause(pause_time)
+            if step_by_step:
+                plt.title(f"BFS: Finished processing vertex {current+1} (press any key to continue)")
+                wait_for_key(plt.gcf())
     
     return visited, parent, traversal_edges, traversal_order
 
 def dfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
-        vertex_circles=None, edge_arrows=None, pause_time=1.0):
+        vertex_circles=None, edge_arrows=None, step_by_step=False):
     """Performs a depth-first search traversal of the graph."""
     n = adjacency_matrix.shape[0]
     
@@ -79,7 +96,9 @@ def dfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
         vertex_circles[start_vertex].set_facecolor('yellow')
         ax.text(positions[start_vertex][0], positions[start_vertex][1] - 0.8, f"Start", 
                 horizontalalignment='center', verticalalignment='center', fontsize=8)
-        plt.pause(pause_time)
+        if step_by_step:
+            plt.title("DFS: Initial vertex selected (press any key to continue)")
+            wait_for_key(plt.gcf())
     
     def dfs_recursive(current):
         traversal_order.append(current)
@@ -87,8 +106,11 @@ def dfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
         
         if ax is not None and positions is not None and vertex_circles is not None:
             vertex_circles[current].set_facecolor('red')
-            plt.pause(pause_time)
+            if step_by_step:
+                plt.title(f"DFS: Processing vertex {current+1} (press any key to continue)")
+                wait_for_key(plt.gcf())
         
+        # Try to visit neighbors in numeric order
         for neighbor in range(n):
             if adjacency_matrix[current, neighbor] == 1 and not visited[neighbor]:
                 parent[neighbor] = current
@@ -101,14 +123,18 @@ def dfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
                         edge_arrows[edge_key].set_color('green')
                         edge_arrows[edge_key].set_linewidth(2.5)
                     vertex_circles[neighbor].set_facecolor('yellow')
-                    plt.pause(pause_time)
+                    if step_by_step:
+                        plt.title(f"DFS: Discovered vertex {neighbor+1} (press any key to continue)")
+                        wait_for_key(plt.gcf())
                 
                 dfs_recursive(neighbor)
         
         # Update visualization for visited vertex (processed)
         if ax is not None and positions is not None and vertex_circles is not None:
             vertex_circles[current].set_facecolor('lightgreen')
-            plt.pause(pause_time)
+            if step_by_step:
+                plt.title(f"DFS: Finished processing vertex {current+1} (press any key to continue)")
+                wait_for_key(plt.gcf())
     
     # Start DFS from the designated vertex
     dfs_recursive(start_vertex)
@@ -116,7 +142,7 @@ def dfs(adjacency_matrix, start_vertex=None, ax=None, positions=None,
     return visited, parent, traversal_edges, traversal_order
 
 def complete_graph_traversal(adjacency_matrix, traversal_func, ax=None, positions=None,
-                            vertex_circles=None, edge_arrows=None, pause_time=1.0):
+                            vertex_circles=None, edge_arrows=None, step_by_step=False):
     """Completes a full traversal of the graph, handling disconnected components."""
     n = adjacency_matrix.shape[0]
     all_visited = [False] * n
@@ -138,9 +164,13 @@ def complete_graph_traversal(adjacency_matrix, traversal_func, ax=None, position
                     start_vertex = i
                     break
         
+        if step_by_step:
+            plt.title(f"Starting new traversal from vertex {start_vertex+1} (press any key to continue)")
+            wait_for_key(plt.gcf())
+        
         # Run traversal from start vertex
         visited, parent, traversal_edges, traversal_order = traversal_func(
-            adjacency_matrix, start_vertex, ax, positions, vertex_circles, edge_arrows, pause_time
+            adjacency_matrix, start_vertex, ax, positions, vertex_circles, edge_arrows, step_by_step
         )
         
         # Update all_visited
@@ -155,23 +185,28 @@ def complete_graph_traversal(adjacency_matrix, traversal_func, ax=None, position
     
     return forest, all_traversal_order
 
-def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause_time=1.0):
+def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name):
     """Draw graph and perform traversal visualization step by step"""
     n = adjacency_matrix.shape[0]
     
     fig, ax = plt.subplots(figsize=(12, 10))
+    plt.ion()  # Turn on interactive mode
     
     vertex_circles = {}
     edge_arrows = {}
     
+    # Draw all edges first
     for i in range(n):
         for j in range(n):
             if adjacency_matrix[i, j] == 1:
                 if i == j:
                     draw_self_loop(ax, positions[i], color='black', linewidth=1.5, is_directed=True)
                 else:
-                    draw_edge(ax, positions[i], positions[j], is_directed=True, color='blue')
+                    # Store edge object for later coloring
+                    arrow = draw_edge(ax, positions[i], positions[j], is_directed=True, color='blue')
+                    edge_arrows[(i, j)] = arrow
     
+    # Draw all vertices
     for i in range(n):
         circle = plt.Circle(positions[i], 0.5, fill=True, facecolor='lightblue', edgecolor='blue')
         ax.add_patch(circle)
@@ -188,6 +223,7 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
     plt.title(f"Graph Traversal - {traversal_func_name}")
     plt.axis('off')
     
+    # Add legend
     legend_elements = [
         Patch(facecolor='lightblue', edgecolor='blue', label='Unvisited'),
         Patch(facecolor='yellow', edgecolor='blue', label='Discovered'),
@@ -196,15 +232,18 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
     ]
     ax.legend(handles=legend_elements, loc='upper right')
     
+    plt.draw()
     plt.pause(1.0)
     
+    # Select traversal function
     if traversal_func_name == "BFS":
         traversal_func = bfs
     else:  # "DFS"
         traversal_func = dfs
     
+    # Run the traversal with visualization
     forest, traversal_order = complete_graph_traversal(
-        adjacency_matrix, traversal_func, ax, positions, vertex_circles, edge_arrows, pause_time
+        adjacency_matrix, traversal_func, ax, positions, vertex_circles, edge_arrows, step_by_step=True
     )
     
     print(f"\n{traversal_func_name} Traversal Order:", " -> ".join(str(v+1) for v in traversal_order))
@@ -216,5 +255,6 @@ def draw_traversal_graph(adjacency_matrix, positions, traversal_func_name, pause
             print(f"  {edge[0]+1} -> {edge[1]+1}")
     
     plt.title(f"Graph Traversal - {traversal_func_name} (Completed)")
+    plt.ioff()  # Turn off interactive mode
     
     return fig, forest, traversal_order
