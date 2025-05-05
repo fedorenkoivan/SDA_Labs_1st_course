@@ -20,7 +20,7 @@ def main():
     print("\n=== PART 5: Graph Traversal Analysis ===")
     
     # Generate matrix using existing function with correct coefficient
-    directed_matrix = generate_adjacency_matrix(n, variant_number, k_formula=1)
+    directed_matrix = generate_adjacency_matrix(n, variant_number)
     
     print_matrix(directed_matrix, f"Directed Graph Adjacency Matrix ({n}x{n}) for Traversal")
     
@@ -31,16 +31,23 @@ def main():
     fig = draw_graph(directed_matrix, positions, is_directed=True, title="Graph for Traversal")
     fig.savefig('graph_for_traversal.png')
     
+    print("\nDisplaying initial graph. Close the window to continue.")
+    plt.show(block=True)
+    
     # Perform BFS traversal with visualization
     print("\nStarting Breadth-First Search (BFS)...")
-    print("Press any key in plot window to continue step by step")
-    bfs_fig, bfs_forest, bfs_order = draw_traversal_graph(directed_matrix, positions, "BFS")
+    print("The visualization will pause at each step. Please wait...")
+    bfs_fig, bfs_forest, bfs_order = draw_traversal_graph(directed_matrix, positions, "BFS", pause_time=2.0)
     bfs_fig.savefig('bfs_traversal.png')
+    
+    # Show BFS results and wait for user to close window
+    print("\nBFS traversal completed. Close the window to continue to DFS.")
+    plt.show(block=True)
     
     # Perform DFS traversal with visualization
     print("\nStarting Depth-First Search (DFS)...")
-    print("Press any key in plot window to continue step by step")
-    dfs_fig, dfs_forest, dfs_order = draw_traversal_graph(directed_matrix, positions, "DFS")
+    print("The visualization will pause at each step. Please wait...")
+    dfs_fig, dfs_forest, dfs_order = draw_traversal_graph(directed_matrix, positions, "DFS", pause_time=2.0)
     dfs_fig.savefig('dfs_traversal.png')
     
     # Analyze and compare traversals
@@ -56,7 +63,8 @@ def main():
     dfs_tree_edges = sum(len(tree) for tree in dfs_forest)
     print(f"DFS created {len(dfs_forest)} tree(s) with a total of {dfs_tree_edges} edges")
     
-    plt.show()
+    print("\nDFS traversal completed. Close the window to exit.")
+    plt.show(block=True)
 
 if __name__ == "__main__":
     main()
