@@ -1,27 +1,43 @@
-# Algorithms and Data Structures - Labs
+# SDA Labs - 1st Course
 
-This repository contains my solutions for the **Algorithms and Data Structures** course, written in **C** and **Python**. The labs cover a variety of topics, including data structures like lists, stacks, queues, and linked lists, as well as recursive algorithms and memory management.
+This repository contains my practical work and assignments for the Structures and Data Algorithms course.
 
-## Table of Contents
-1. [Introduction](#introduction)
-2. [Labs](#labs)
-3. [Technologies Used](#technologies-used)
-4. [Usage](#usage)
-5. [License](#license)
+## Repository Structure
 
-## Introduction
+The repository is organized into labs and includes implementations in Python and C.
 
-This repository contains my solutions for the **Algorithms and Data Structures** course, which includes tasks like implementing data structures such as **linked lists**, **queues**, **stacks**, and applying **recursion** to solve problems. 
+## Topics Covered
 
-### Labs Overview
-Some of the key tasks include:
-- Creating linked lists and performing various operations on them (e.g., insertion, deletion, traversal).
-- Implementing recursive algorithms such as computing the square root using a Taylor series and working with lists.
-- Modifying and reorganizing data structures inside lists (reordering elements, sorting, etc.).
+- Basic algorithms and their implementations
+- Data structures and their operations
+- Algorithm complexity and efficiency analysis
+- Sorting and searching techniques
+- Graph algorithms
+- Dynamic programming
 
-## Labs
+## Running the Code
 
-### Lab 1: Linked Lists and Recursion (C)
-- **Objective**: Create a linked list with **n** elements (n is a multiple of 20) and implement various operations such as insertion, deletion, and reordering elements within each group of 20.
-- **Data Structure**: Singly linked list.
-- **Task**: Reorder the list inside every set of 20 elements following a pattern:
+### Python Requirements
+
+To run the Python implementations:
+
+```bash
+# Clone the repository
+git clone https://github.com/fedorenkoivan/SDA_Labs_1st_course.git
+cd SDA_Labs_1st_course
+
+# Run a specific Python file
+python3 path/to/file.py
+```
+
+### C Requirements
+
+To compile and run C implementations:
+
+```bash
+# Compile a C file
+gcc path/to/file.c -o output_name
+
+# Run the compiled program
+./output_name
+```
