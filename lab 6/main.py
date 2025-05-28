@@ -167,6 +167,12 @@ if __name__ == '__main__':
     np.random.seed(variant)
     B = np.random.random((n, n)) * 2.0
     W = generate_weight_matrix(Aundir, B)
+
+    print("Adjacency Matrix (Undirected):")
+    print(Aundir)
+    print("\nWeight Matrix:")
+    print(W)
+
     positions = get_vertex_positions(n, n4)
     graph = build_graph(Aundir, W, positions)
 
