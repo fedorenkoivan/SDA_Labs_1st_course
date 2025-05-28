@@ -3,13 +3,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.widgets import Button
 
-# ------------------ GRAPH STRUCTURES ------------------
 class Vertex:
     def __init__(self, id, x=0, y=0):
         self.id = id
         self.x = x
         self.y = y
-        self.adjacency = []  # list of (neighbor_id, weight)
+        self.adjacency = []
 
 class Graph:
     def __init__(self):
@@ -22,7 +21,6 @@ class Graph:
         self.vertices[u].adjacency.append((v, weight))
         self.vertices[v].adjacency.append((u, weight))
 
-# ------------------ GRAPH GENERATION ------------------
 def generate_adjacency_matrix(n, variant_number, n3, n4):
     np.random.seed(variant_number)
     T = np.random.random((n, n)) * 2.0
@@ -77,7 +75,6 @@ def build_graph(Aundir, W, positions):
                 graph.add_edge(i + 1, j + 1, W[i][j])
     return graph
 
-# ------------------ PRIM'S ALGORITHM ------------------
 def generate_prim_steps(graph, start=1):
     steps = []
     visited = {start}
@@ -100,7 +97,6 @@ def generate_prim_steps(graph, start=1):
         steps.append(mst.copy())
     return steps
 
-# ------------------ VISUALIZATION ------------------
 class StepVisualizer:
     def __init__(self, graph, steps):
         self.graph = graph
@@ -156,7 +152,6 @@ class StepVisualizer:
             self.index -= 1
             self.draw()
 
-# ------------------ RUN ------------------
 if __name__ == '__main__':
     variant = 4229
     n1, n2, n3, n4 = 4, 2, 2, 9
