@@ -1,10 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import math
-import sys
-
-# --- PART 1: Generation of the required matrices ---
 
 def generate_adjacency_matrix(n, variant_number, n3, n4):
     np.random.seed(variant_number)
@@ -30,30 +26,23 @@ def get_undirected_matrix(directed_matrix):
 def generate_weight_matrix(undirected_matrix, n, variant_number):
     np.random.seed(variant_number)
     B = np.random.random((n, n)) * 2.0
-    # Step 2: C = ceil(b_ij*100*aund_ij)
     C = np.ceil(B * 100 * undirected_matrix).astype(int)
-    # Step 3: D = 0 if c_ij==0 else 1
     D = (C > 0).astype(int)
-    # Step 4: H = 1 if d_ij==d_ji else 0
     H = np.zeros((n, n), dtype=int)
     for i in range(n):
         for j in range(n):
             H[i, j] = 1 if D[i, j] == D[j, i] else 0
-    # Step 5: Tr (upper triangle including diag is 0, under is 1)
     Tr = np.zeros((n, n), dtype=int)
     for i in range(n):
         for j in range(n):
             if i > j:
                 Tr[i, j] = 1
-    # Step 6: w_ij = w_ji = d_ij * h_ij * tr_ij * c_ij
     W = np.zeros((n, n), dtype=int)
     for i in range(n):
         for j in range(n):
             W[i, j] = D[i, j] * H[i, j] * Tr[i, j] * C[i, j]
-            W[j, i] = W[i, j]  # Ensure symmetry
+            W[j, i] = W[i, j]
     return W
-
-# --- PART 2: Graph visualization (rectangular + center) ---
 
 def get_vertex_positions(n, n4):
     positions = np.zeros((n, 2))
@@ -91,7 +80,6 @@ def get_vertex_positions(n, n4):
             positions[vertex_index] = [-width/2, y]
             vertex_index += 1
     else:
-        # fallback: circle
         for i in range(n):
             angle = 2 * np.pi * i / n
             positions[i] = [6 * np.cos(angle), 4 * np.sin(angle)]
@@ -109,27 +97,38 @@ def draw_edge(ax, start, end, color='blue', linewidth=1.5, weight=None, weight_p
     start_y = start[1] + dy * ratio
     end_x = end[0] - dx * ratio
     end_y = end[1] - dy * ratio
+
     ax.plot([start_x, end_x], [start_y, end_y],
             color=color if not highlight else "red",
             linewidth=linewidth if not highlight else 3)
-    # Draw the weight
+
+    # Offset the weight label perpendicular to the edge
     if weight is not None and weight > 0:
         wx = start_x + (end_x - start_x) * weight_pos
         wy = start_y + (end_y - start_y) * weight_pos
-        ax.text(wx, wy, str(weight), fontsize=9, color=color if not highlight else "red", weight="bold")
-
+        # Perpendicular vector (normalized)
+        perp_dx = -(end_y - start_y)
+        perp_dy = (end_x - start_x)
+        perp_len = np.sqrt(perp_dx**2 + perp_dy**2)
+        if perp_len > 0:
+            perp_dx /= perp_len
+            perp_dy /= perp_len
+        offset = 0.4  # adjust as needed
+        wx += perp_dx * offset
+        wy += perp_dy * offset
+        ax.text(wx, wy, str(weight), fontsize=9, color=color if not highlight else "red", weight="bold",
+                bbox=dict(facecolor='white', edgecolor='none', alpha=0.7, boxstyle='round,pad=0.1'))
+        
 def draw_graph(W, positions, mst_edges=None, highlight_color="red"):
     n = W.shape[0]
     fig, ax = plt.subplots(figsize=(12, 10))
     rect = patches.Rectangle((-6, -4), 12, 8, linewidth=1, edgecolor='gray', facecolor='none', linestyle='--')
     ax.add_patch(rect)
-    # draw all edges
     for i in range(n):
         for j in range(i+1, n):
             if W[i, j] > 0:
                 is_mst = mst_edges is not None and ((i, j) in mst_edges or (j, i) in mst_edges)
                 draw_edge(ax, positions[i], positions[j], color='blue', linewidth=1.5, weight=W[i, j], highlight=is_mst)
-    # draw nodes
     for i, pos in enumerate(positions):
         circle = plt.Circle(pos, 0.5, fill=True, color='lightblue', edgecolor='blue')
         ax.add_patch(circle)
@@ -142,7 +141,6 @@ def draw_graph(W, positions, mst_edges=None, highlight_color="red"):
     plt.axis('off')
     return fig, ax
 
-# --- PART 3: Dynamic Graph Structure (for MST algorithms) ---
 
 class Edge:
     def __init__(self, u, v, weight):
@@ -155,7 +153,7 @@ class Edge:
 class Graph:
     def __init__(self, n):
         self.n = n
-        self.edges = []  # (u, v, weight)
+        self.edges = []
         self.adj = [[] for _ in range(n)]
     def add_edge(self, u, v, weight):
         self.edges.append(Edge(u, v, weight))
@@ -174,9 +172,6 @@ def build_graph_from_matrix(W):
             if W[i, j] > 0:
                 g.add_edge(i, j, W[i, j])
     return g
-
-# --- PART 4: Kruskal's and Prim's algorithms with step-by-step visualization ---
-
 class DisjointSet:
     def __init__(self, n):
         self.parent = list(range(n))
@@ -215,6 +210,8 @@ def kruskal_stepwise(graph, positions, W):
     print("MST edges:", [(u+1, v+1) for u, v in mst_edges])
     return mst_edges
 
+from matplotlib.widgets import Button
+
 def prim_stepwise(graph, positions, W):
     n = graph.n
     visited = [False]*n
@@ -224,28 +221,51 @@ def prim_stepwise(graph, positions, W):
     visited[0] = True
     for v, w in graph.get_neighbors(0):
         heapq.heappush(heap, (w, 0, v))
-    print("\n=== Prim's Algorithm Step-by-Step ===")
-    step_count = 1
-    while heap and len(mst_edges) < n-1:
-        w, u, v = heapq.heappop(heap)
-        if visited[v]:
-            continue
-        mst_edges.append((u, v))
-        print(f"\nStep {step_count}: Added edge ({u+1}, {v+1}) with weight {w}")
-        visited[v] = True
-        for to, ww in graph.get_neighbors(v):
-            if not visited[to]:
-                heapq.heappush(heap, (ww, v, to))
-        fig, ax = draw_graph(W, positions, mst_edges)
-        plt.title(f"Prim's Algorithm Step {step_count}")
-        plt.show(block=False)
-        input("Press Enter for next step...")
-        plt.close()
-        step_count += 1
-    print("MST edges:", [(u+1, v+1) for u, v in mst_edges])
-    return mst_edges
 
-# --- PART 5: Main program and user interaction ---
+    # Prepare steps in advance
+    steps = []
+    temp_visited = visited[:]
+    temp_heap = list(heap)
+    temp_edges = []
+    step_count = 1
+    while temp_heap and len(temp_edges) < n-1:
+        w, u, v = heapq.heappop(temp_heap)
+        if temp_visited[v]:
+            continue
+        temp_edges.append((u, v))
+        temp_visited[v] = True
+        for to, ww in graph.get_neighbors(v):
+            if not temp_visited[to]:
+                heapq.heappush(temp_heap, (ww, v, to))
+        steps.append(list(temp_edges))
+
+    # Matplotlib interactive stepper
+    class Stepper:
+        def __init__(self):
+            self.idx = 0
+            self.fig, self.ax = draw_graph(W, positions, steps[0])
+            plt.subplots_adjust(bottom=0.2)
+            self.button_ax = self.fig.add_axes([0.4, 0.05, 0.2, 0.075])
+            self.button = Button(self.button_ax, 'Next Step')
+            self.button.on_clicked(self.next_step)
+            self.update()
+
+        def next_step(self, event):
+            self.idx += 1
+            if self.idx >= len(steps):
+                self.idx = len(steps) - 1
+            self.update()
+
+        def update(self):
+            self.ax.clear()
+            draw_graph(W, positions, steps[self.idx])
+            self.fig.suptitle(f"Prim's Algorithm Step {self.idx+1}")
+            plt.draw()
+
+    Stepper()
+    plt.show()
+    print("MST edges:", [(u+1, v+1) for u, v in steps[-1]])
+    return steps[-1]
 
 def print_matrix(matrix, title):
     print(f"\n{title}:")
@@ -253,7 +273,6 @@ def print_matrix(matrix, title):
         print(" ".join(map(str, row)))
 
 def main():
-    # --- Parameters for your variant ---
     variant_number = 4229
     n3 = 2
     n4 = 9
@@ -262,7 +281,6 @@ def main():
     print(f"Number of vertices n = 10 + {n3} = {n}")
     print(f"Vertex placement: Rectangular with vertex in center (n4 = {n4})")
 
-    # --- Generate matrices ---
     directed_matrix = generate_adjacency_matrix(n, variant_number, n3, n4)
     undirected_matrix = get_undirected_matrix(directed_matrix)
     W = generate_weight_matrix(undirected_matrix, n, variant_number)
@@ -272,15 +290,12 @@ def main():
     print_matrix(undirected_matrix, f"Undirected Graph Adjacency Matrix ({n}x{n})")
     print_matrix(W, f"Weight Matrix W ({n}x{n})")
 
-    # --- Draw the undirected weighted graph ---
     fig, ax = draw_graph(W, positions)
     plt.title("Undirected Weighted Graph")
     plt.show()
 
-    # --- Build dynamic graph for MST ---
     graph = build_graph_from_matrix(W)
 
-    # --- Choose and run MST algorithm step-by-step ---
     if n4 % 2 == 0:
         print("\n n4 is even, using Kruskal's algorithm.")
         kruskal_stepwise(graph, positions, W)
