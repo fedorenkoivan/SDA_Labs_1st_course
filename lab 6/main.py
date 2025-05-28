@@ -120,6 +120,7 @@ class StepVisualizer:
     def draw(self):
         self.ax.clear()
         mst_edges = set((min(u, v), max(u, v)) for u, v, _ in self.steps[self.index])
+        total_weight = sum(w for _, _, w in self.steps[self.index])
 
         for u in self.graph.vertices:
             for v, w in self.graph.vertices[u].adjacency:
@@ -140,7 +141,7 @@ class StepVisualizer:
             self.ax.add_patch(plt.Circle((v.x, v.y), 0.4, color='lightblue', ec='black'))
             self.ax.text(v.x, v.y, str(v.id), ha='center', va='center', fontsize=11, fontweight='bold')
 
-        self.ax.set_title(f"MST Step {self.index}/{len(self.steps)-1}")
+        self.ax.set_title(f"MST Step {self.index}/{len(self.steps)-1} - Total Weight: {total_weight}")
         self.ax.axis('equal')
         self.ax.axis('off')
         self.fig.canvas.draw_idle()
