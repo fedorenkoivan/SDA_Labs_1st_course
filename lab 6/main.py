@@ -2,30 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
-# --- Прямокутне розташування як на малюнку ---
 def rectangle_with_center_layout():
-    """Return coordinates for 12 nodes: 4 top, 3 right, 3 bottom, 2 left, 1 center (1-indexed)."""
     coords = {}
-    # Rectangle dimensions
     W, H = 8, 6
     mx, my = 1.2, 1
-    # Top row (1-4)
     for i in range(4):
         coords[i+1] = (mx + i*(W-2*mx)/3, H-my)
-    # Right column (5-7)
     for i in range(3):
         coords[5+i] = (W-mx, H-my-(i+1)*(H-2*my)/4)
-    # Bottom row (8-10), right to left
     for i in range(3):
         coords[8+i] = (W-mx-(i+1)*(W-2*mx)/3, my)
-    # Left column (11-12), bottom to top
     coords[11] = (mx, my+(H-2*my)/4)
     coords[12] = (mx, my+2*(H-2*my)/4)
-    # Center (13, but our vertex 12!)
     coords[0] = (W/2, H/2)
     return coords
 
-# --- Генерація графа ---
 n1, n2, n3, n4 = 4, 2, 2, 9
 variant = int(f"{n1}{n2}{n3}{n4}")
 n = 12
@@ -44,7 +35,7 @@ D = np.where(C == 0, 0, 1)
 H = np.where(D == D.T, 1, 0)
 Tr = np.triu(np.ones((n, n)), 1)
 W = D * H * Tr * C
-W = W + W.T  # Symmetric
+W = W + W.T
 
 def matrix_to_adjlist(W):
     n = W.shape[0]
@@ -56,13 +47,14 @@ def matrix_to_adjlist(W):
     return adj
 adj = matrix_to_adjlist(W)
 
-# --- Прямокутне розташування (vertex 0 — центр, далі 1...11 по колу) ---
 layout = rectangle_with_center_layout()
-# Перевірка: вершини з 1 по 12, 0 — центр
-node_pos = {i: layout[i] for i in range(1, 13)}
-node_pos[12] = layout[0]  # 12 - центр
+node_pos = {}
+for i in range(1, 13):
+    if i == 12:
+        node_pos[i] = layout[0]
+    else:
+        node_pos[i] = layout[i]
 
-# --- Реалізація Пріма з покроковим виконанням ---
 class PrimStepVisualizer:
     def __init__(self, adj):
         self.n = len(adj)
@@ -99,37 +91,6 @@ class PrimStepVisualizer:
     def is_done(self):
         return all(self.in_mst)
 
-def draw_graph(adj, W, pos, mst_edges, last_added):
-    plt.clf()
-    # Всі ребра
-    for u in range(len(adj)):
-        for v, w in adj[u]:
-            if u < v:
-                color = "black"
-                width = 1
-                if (u, v) in mst_edges or (v, u) in mst_edges:
-                    color = "red"
-                    width = 2.5
-                if last_added and ((u, v) == last_added or (v, u) == last_added):
-                    color = "orange"
-                    width = 4
-                x0, y0 = pos[u+1 if u != 11 else 12]
-                x1, y1 = pos[v+1 if v != 11 else 12]
-                plt.plot([x0, x1], [y0, y1], color=color, lw=width, zorder=1)
-                mx, my = (x0 + x1) / 2, (y0 + y1) / 2
-                plt.text(mx, my, str(int(W[u, v])), color="blue", fontsize=9, ha='center', va='center',
-                         bbox=dict(facecolor="white", edgecolor='none', pad=0.1), zorder=2)
-    # Вершини
-    for i in range(1, 13):
-        x, y = pos[i]
-        plt.scatter([x], [y], s=450, color='lightblue', edgecolor='k', zorder=3)
-        plt.text(x, y, str(i), color="black", fontsize=14, ha='center', va='center', fontweight='bold', zorder=4)
-    plt.title("Алгоритм Пріма: кістяк графа")
-    plt.axis('off')
-    plt.axis('equal')
-    plt.tight_layout()
-    plt.pause(0.05)
-
 class StepApp:
     def __init__(self, adj, W, pos):
         self.prim = PrimStepVisualizer(adj)
@@ -137,31 +98,67 @@ class StepApp:
         self.W = W
         self.pos = pos
         self.fig, self.ax = plt.subplots()
-        plt.subplots_adjust(bottom=0.2)
-        self.button_ax = plt.axes([0.7, 0.05, 0.2, 0.075])
-        self.btn = Button(self.button_ax, 'Наступний крок')
+        plt.subplots_adjust(bottom=0.22)
+        self.button_ax = plt.axes([0.32, 0.05, 0.36, 0.1])
+        self.btn = Button(self.button_ax, 'Наступний крок', color='#007bff', hovercolor='#0056b3')
         self.btn.on_clicked(self.next_step)
-        self.reset_ax = plt.axes([0.1, 0.05, 0.2, 0.075])
-        self.btn_reset = Button(self.reset_ax, 'Скинути')
+        self.btn_active = True
+        self.reset_ax = plt.axes([0.78, 0.05, 0.18, 0.1])
+        self.btn_reset = Button(self.reset_ax, 'Скинути', color='#f0ad4e', hovercolor='#ec971f')
         self.btn_reset.on_clicked(self.reset)
-        self.show_step()
-    def show_step(self):
-        draw_graph(self.adj, self.W, self.pos, self.prim.get_mst_edges(), self.prim.last_added)
+        self.redraw()
+    def redraw(self):
+        self.ax.clear()
+        # Draw all edges
+        for u in range(len(self.adj)):
+            for v, w in self.adj[u]:
+                if u < v:
+                    color = "black"
+                    width = 1
+                    if (u, v) in self.prim.mst_edges or (v, u) in self.prim.mst_edges:
+                        color = "red"
+                        width = 2.5
+                    if self.prim.last_added and ((u, v) == self.prim.last_added or (v, u) == self.prim.last_added):
+                        color = "orange"
+                        width = 4
+                    ix = 12 if u == 11 else u+1
+                    jx = 12 if v == 11 else v+1
+                    x0, y0 = self.pos[ix]
+                    x1, y1 = self.pos[jx]
+                    self.ax.plot([x0, x1], [y0, y1], color=color, lw=width, zorder=1)
+                    mx, my = (x0 + x1) / 2, (y0 + y1) / 2
+                    self.ax.text(mx, my, str(int(self.W[u, v])), color="blue", fontsize=9, ha='center', va='center',
+                                 bbox=dict(facecolor="white", edgecolor='none', pad=0.1), zorder=2)
+        # Draw nodes
+        for i in range(1, 13):
+            x, y = self.pos[i]
+            self.ax.scatter([x], [y], s=450, color='lightblue', edgecolor='k', zorder=3)
+            self.ax.text(x, y, str(i), color="black", fontsize=14, ha='center', va='center', fontweight='bold', zorder=4)
+        self.ax.set_title("Алгоритм Пріма: кістяк графа")
+        self.ax.axis('off')
+        self.ax.axis('equal')
         if self.prim.is_done():
             self.btn.label.set_text('Готово')
-            self.btn.ax.set_visible(False)
+            self.btn.color = '#cccccc'
+            self.btn.hovercolor = '#cccccc'
+            self.btn_active = False
         else:
             self.btn.label.set_text('Наступний крок')
-            self.btn.ax.set_visible(True)
+            self.btn.color = '#007bff'
+            self.btn.hovercolor = '#0056b3'
+            self.btn_active = True
+        self.fig.canvas.draw_idle()
     def next_step(self, event):
-        if not self.prim.is_done():
+        if self.btn_active and not self.prim.is_done():
             self.prim.step()
-            self.show_step()
+            self.redraw()
     def reset(self, event):
         self.prim.reset()
         self.btn.label.set_text('Наступний крок')
-        self.btn.ax.set_visible(True)
-        self.show_step()
+        self.btn.color = '#007bff'
+        self.btn.hovercolor = '#0056b3'
+        self.btn_active = True
+        self.redraw()
     def show(self):
         plt.show()
 
