@@ -148,13 +148,19 @@ class StepVisualizer:
                     x2, y2 = self.graph.vertices[v].x, self.graph.vertices[v].y
                     color = 'red' if (u, v) in mst_edges else 'gray'
                     self.ax.plot([x1, x2], [y1, y2], color=color, linewidth=2)
+                    
                     mx, my = (x1 + x2)/2, (y1 + y2)/2
                     dx, dy = x2 - x1, y2 - y1
-                    offset_x = -0.2 * dy / (np.sqrt(dx**2 + dy**2) + 1e-9)
-                    offset_y =  0.2 * dx / (np.sqrt(dx**2 + dy**2) + 1e-9)
-                    self.ax.text(mx + offset_x, my + offset_y, str(w), fontsize=9,
-                                 ha='center', va='center',
-                                 bbox=dict(facecolor='white', edgecolor='black', alpha=0.7))
+                    length = np.sqrt(dx**2 + dy**2)
+                    
+                    offset_x = -0.5 * dy / (length + 1e-9)
+                    offset_y = 0.5 * dx / (length + 1e-9)
+                    
+                    self.ax.text(mx + offset_x, my + offset_y, str(w), 
+                                fontsize=10, fontweight='bold',
+                                ha='center', va='center',
+                                bbox=dict(facecolor='white', edgecolor='black', 
+                                        boxstyle='round,pad=0.3', alpha=0.9))
 
         for v in self.graph.vertices.values():
             self.ax.add_patch(plt.Circle((v.x, v.y), 0.4, color='lightblue', ec='black'))
