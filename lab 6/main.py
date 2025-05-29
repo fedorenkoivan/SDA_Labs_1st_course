@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from matplotlib.widgets import Button
 
 class Vertex:
@@ -36,32 +35,56 @@ def generate_weight_matrix(Aundir, B):
     D = (C > 0).astype(int)
     H = (D == D.T).astype(int)
     Tr = np.triu(np.ones_like(Aundir), k=0)
-    W = D * H * Tr * C
-    W = W + W.T - np.diag(W.diagonal())
+    
+    W = np.zeros_like(C, dtype=int)
+    n = C.shape[0]
+    for i in range(n):
+        for j in range(n):
+            if i <= j:
+                W[i, j] = D[i, j] * H[i, j] * Tr[i, j] * C[i, j]
+            else:
+                W[i, j] = W[j, i]
+    
     return W
 
 def get_vertex_positions(n, n4):
     positions = np.zeros((n, 2))
     if n4 in [8, 9]:
         width, height = 12, 8
-        positions[n - 1] = [0, 0]
-        perimeter = n - 1
+        perimeter_vertices = n - 1
+        corners = 4
         sides = [0, 0, 0, 0]
-        for i in range(perimeter - 4):
+        
+        for i in range(perimeter_vertices - corners):
             sides[i % 4] += 1
+        
         idx = 0
         positions[idx] = [-width / 2, height / 2]; idx += 1
+        
         for i in range(sides[0]):
-            positions[idx] = [-width / 2 + (i + 1) * width / (sides[0] + 1), height / 2]; idx += 1
+            positions[idx] = [-width / 2 + (i + 1) * width / (sides[0] + 1), height / 2]
+            idx += 1
+        
         positions[idx] = [width / 2, height / 2]; idx += 1
+        
         for i in range(sides[1]):
-            positions[idx] = [width / 2, height / 2 - (i + 1) * height / (sides[1] + 1)]; idx += 1
+            positions[idx] = [width / 2, height / 2 - (i + 1) * height / (sides[1] + 1)]
+            idx += 1
+        
         positions[idx] = [width / 2, -height / 2]; idx += 1
+        
         for i in range(sides[2]):
-            positions[idx] = [width / 2 - (i + 1) * width / (sides[2] + 1), -height / 2]; idx += 1
+            positions[idx] = [width / 2 - (i + 1) * width / (sides[2] + 1), -height / 2]
+            idx += 1
+        
         positions[idx] = [-width / 2, -height / 2]; idx += 1
+        
         for i in range(sides[3]):
-            positions[idx] = [-width / 2, -height / 2 + (i + 1) * height / (sides[3] + 1)]; idx += 1
+            positions[idx] = [-width / 2, -height / 2 + (i + 1) * height / (sides[3] + 1)]
+            idx += 1
+        
+        positions[n - 1] = [0, 0]
+    
     return positions
 
 def build_graph(Aundir, W, positions):
